@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>6CAFC0C6-A428-4d30-A9F9-700E829FEA51</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MyApplication</RootNamespace>
+    <AssemblyName>MyApplication</AssemblyName>
+    <Name>TFSEnvironment</Name>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Functions\" />
+    <Folder Include="Functions\Files\" />
+    <Folder Include="Functions\IIS\" />
+    <Folder Include="Functions\TFS\" />
+    <Folder Include="Functions\Utils\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Functions\Disable-TFSEnvironment.ps1" />
+    <Compile Include="Functions\Enable-TFSEnvironment.ps1" />
+    <Compile Include="Functions\Files\Get-IISConfigurationFileContent.ps1" />
+    <Compile Include="Functions\Files\Set-TFSEnvFileContent.ps1" />
+    <Compile Include="Functions\Files\Set-TFSEnvIISConfigurationFileContent.ps1" />
+    <Compile Include="Functions\Files\Set-TFSEnvPathsFileContent.ps1" />
+    <Compile Include="Functions\Get-TFSEnvironment.ps1" />
+    <Compile Include="Functions\IIS\Get-IISConfiguration.ps1" />
+    <Compile Include="Functions\IIS\Get-PSPathFromItemXPath.ps1" />
+    <Compile Include="Functions\IIS\Set-IISConfiguration.ps1" />
+    <Compile Include="Functions\IIS\Update-IISPaths.ps1" />
+    <Compile Include="Functions\Initialize-TFSEnvironment.ps1" />
+    <Compile Include="Functions\Set-TFSEnvironment.ps1" />
+    <Compile Include="Functions\TFSEnvironmentVariables.ps1" />
+    <Compile Include="Functions\TFS\Get-TFSMappings.ps1" />
+    <Compile Include="Functions\TFS\Get-TFSWorkspaces.ps1" />
+    <Compile Include="Functions\TFS\Map-TFSEnvLocalPath.ps1" />
+    <Compile Include="Functions\TFS\Map-TFSPath.ps1" />
+    <Compile Include="Functions\Use-TFSEnvironment.ps1" />
+    <Compile Include="Functions\Utils\Get-UserSelection.ps1" />
+    <Compile Include="Functions\Utils\Get-WebItemConfig.ps1" />
+    <Compile Include="Functions\Utils\Prompt-FolderPath.ps1" />
+    <Compile Include="Functions\Utils\Reload-EnviromentVariables.ps1" />
+    <Compile Include="Functions\Utils\Replace-PhysicalPathWithDevBranchPath.ps1" />
+    <Compile Include="Functions\Utils\Set-TFSMachineEnvVariable.ps1" />
+    <Compile Include="TFSEnvironment.psd1" />
+    <Compile Include="TFSEnvironment.psm1" />
+    <Compile Include="TFSEnvironment.tests.ps1" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Target Name="Build" />
+</Project>

@@ -8,12 +8,14 @@ Import-Module "$PSModules\psake\psake.psm1"
 
 #add scripts to path
 $env:Path += ";$PSScripts\"
+#$env:Path += ";c:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\"
+$env:Path += ";c:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\"
 
-$demo_api = "$PSParentPath\..\TFSDemo\Dev-WebAPI\DemoAPI\DemoAPI"
-$demo_web = "$PSParentPath\..\TFSDemo\Dev-WebApp\DemoApp\DemoApp"
+Import-Module d:\Projects\git\TFS-Environment-Switch\PowerShell\Modules\TFSEnvironment\TFSEnvironment.psm1
+Use-TFSEnvironment
 
 #run all profile files
-dir "$PSParentPath\*" -Include *.ps1 -Exclude profile.ps1 |% {. $_.FullName} 
+dir "$PSParentPath\Profile\*" -Include *.ps1 -Exclude profile.ps1 |% {. $_.FullName} 
 
 #run all functions files
 dir "$PSParentPath\functions\*" -Include *.ps1 |% {. $_.FullName}

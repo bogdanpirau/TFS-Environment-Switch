@@ -1,25 +1,9 @@
 properties {
-	$my_property = $p1 + $p2
-	$x = $null
-	$y = $null
-	$z = $null
-}
-
-task default -depends TestParams, TestProperties
-
-task TestParams {
-	Assert ($my_property -ne $null) '$my_property should not be null'
-}
-
-task TestProperties {
-    Assert ($x -ne $null) "x should not be null"
-    Assert ($y -ne $null) "y should not be null"
-    Assert ($z -eq $null) "z should be null"
 }
 
 task web {
 	Try {
-		Push-LocationEX $demo_Web
+		Push-LocationEX $env:TFSWeb
 		dotnet build
 	}
 	Catch {
@@ -27,19 +11,31 @@ task web {
 	}
 }
 
+task stop-iis {
+		iisreset /stop
+}
+
+task start-iis {
+		iisreset /start
+}
+
 task web-publish {
 	Try {
-		Push-LocationEX $demo_Web
+		Push-LocationEX $env:TFSWeb
+		iisreset /stop
 		dotnet build /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
 	}
 	Catch {
 		Pop-Location
 	}
+	Finally{
+		iisreset /start
+	}
 }
 
 task api {
 	Try {
-		Push-LocationEX $demo_Api
+		Push-LocationEX $env:TFSApi
 		dotnet build
 	}
 	Catch {
@@ -49,10 +45,14 @@ task api {
 
 task api-publish {
 	Try {
-		Push-LocationEX $demo_Api
+		Push-LocationEX $env:TFSApi
+		iisreset /stop
 		dotnet build /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
 	}
 	Catch {
 		Pop-Location
+	}
+	Finally{
+		iisreset /start
 	}
 }
