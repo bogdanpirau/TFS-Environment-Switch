@@ -17,13 +17,13 @@ param
 )
 			$newFile = (
 "`$global:TFSApi_Dev = '$DevApi';
-`$global:TFSApp_Dev = '$DevApp';
+`$global:TFSWeb_Dev = '$DevApp';
 #`$global:TFSApi_Dev_US_FeatureBranch = '$DevApi_US_FeatureBranch';
-#`$global:TFSApp_Dev_US_FeatureBranch = '$DevApp_US_FeatureBranch';
+#`$global:TFSWeb_Dev_US_FeatureBranch = '$DevApp_US_FeatureBranch';
 `$global:TFSApi_Main = '$MainApi';
-`$global:TFSApp_Main = '$MainApp';
+`$global:TFSWeb_Main = '$MainApp';
 `$global:TFSApi_Rel = '$RelApi';
-`$global:TFSApp_Rel = '$RelApp';
+`$global:TFSWeb_Rel = '$RelApp';
 `$global:TFSApi_Hot = '$HotApi';
-`$global:TFSApp_Hot = '$HotApp';" | New-Item $tfsEnvPathsFile -ItemType File -Force)
+`$global:TFSWeb_Hot = '$HotApp';" | New-Item $tfsEnvPathsFile -ItemType File -Force)
 }

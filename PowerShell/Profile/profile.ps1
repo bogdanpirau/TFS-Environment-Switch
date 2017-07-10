@@ -6,9 +6,9 @@ New-variable PSModules -value "$PSParentPath\Modules" -Force -scope global
 Import-Module "$PSModules\PsReadLine\PsReadLine.psm1"
 Import-Module "$PSModules\psake\psake.psm1"
 
+
 #add scripts to path
 $env:Path += ";$PSScripts\"
-#$env:Path += ";c:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\"
 $env:Path += ";c:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\"
 
 Import-Module d:\Projects\git\TFS-Environment-Switch\PowerShell\Modules\TFSEnvironment\TFSEnvironment.psm1

@@ -3,7 +3,7 @@ properties {
 
 task web {
 	Try {
-		Push-LocationEX $env:TFSWeb
+		Push-LocationEX $env:TFSWeb\DemoApp
 		dotnet build
 	}
 	Catch {
@@ -21,8 +21,9 @@ task start-iis {
 
 task web-publish {
 	Try {
-		Push-LocationEX $env:TFSWeb
+		Push-LocationEX $env:TFSWeb\DemoApp
 		iisreset /stop
+		dotnet restore
 		dotnet build /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
 	}
 	Catch {
@@ -35,7 +36,7 @@ task web-publish {
 
 task api {
 	Try {
-		Push-LocationEX $env:TFSApi
+		Push-LocationEX $env:TFSApi\DemoApi
 		dotnet build
 	}
 	Catch {
@@ -45,8 +46,9 @@ task api {
 
 task api-publish {
 	Try {
-		Push-LocationEX $env:TFSApi
+		Push-LocationEX $env:TFSApi\DemoApi
 		iisreset /stop
+		dotnet restore
 		dotnet build /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
 	}
 	Catch {

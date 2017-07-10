@@ -9,11 +9,11 @@ param
 )
 
 	If ($PhysicalPath -like "$($env:TFSApi)*"){
-		$PhysicalPath = $PhysicalPath.Replace($env:TFSApi, '$($env:TFSApi)')
+		$PhysicalPath = $PhysicalPath -ireplace $env:TFSApi.Replace('\', '\\'), '$env:TFSApi'
 	}
 
 	If ($PhysicalPath -like "$($env:TFSWeb)*"){
-		$PhysicalPath = $PhysicalPath.Replace($env:TFSWeb, '$($env:TFSWeb)')
+		$PhysicalPath = $PhysicalPath -ireplace $env:TFSWeb.Replace('\', '\\'), '$env:TFSWeb'
 	}
 	
 	Return $PhysicalPath

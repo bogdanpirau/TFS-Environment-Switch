@@ -8,7 +8,7 @@ Function Get-WebItemConfig {
 	)
 
 	$physicalPath = Replace-PhysicalPathWithDevBranchPath($webItem.physicalPath)
-	
+
 	If ($physicalPath -notlike '$*') {
 		Return ''
 	}
