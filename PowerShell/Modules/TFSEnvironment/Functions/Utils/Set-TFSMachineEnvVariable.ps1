@@ -1,13 +1,12 @@
 ﻿Function Set-TFSMachineEnvVariable {
 param
 (
-	#, 'Dev_US_FeatureBranch'
-	[ValidateSet('Dev', 'Main', 'Rel', 'Hot')]
+	[ValidateSet('Dev', 'Dev_US_FeatureBranch', 'Main', 'Rel', 'Hot')]
 	[string]$TFSEnvName,
 	[string]$DevApi,
 	[string]$DevApp,
-	#[string]$DevApi_US_FeatureBranch,
-	#[string]$DevApp_US_FeatureBranch,
+	[string]$DevApi_US_FeatureBranch,
+	[string]$DevApp_US_FeatureBranch,
 	[string]$MainApi,
 	[string]$MainApp,
 	[string]$RelApi,
@@ -16,17 +15,17 @@ param
 	[string]$HotApp
 )
 	Switch($TFSEnvName) {
-		$TFSEnvironments.Dev.Name { 
+		$TFSEnvironments.Dev.Name {
 			$tfsApi = $DevApi;
 			$tfsWeb = $DevApp;
 		}
 
-		#$TFSEnvironments.Dev_US_FeatureBranch.Name { 
-		#	$tfsApi = $DevApi_US_FeatureBranch;
-		#	$tfsWeb = $DevApp_US_FeatureBranch;
-		#}
+		$TFSEnvironments.Dev_US_FeatureBranch.Name {
+			$tfsApi = $DevApi_US_FeatureBranch;
+			$tfsWeb = $DevApp_US_FeatureBranch;
+		}
 
-		$TFSEnvironments.Main.Name { 
+		$TFSEnvironments.Main.Name {
 			$tfsApi = $MainApi;
 			$tfsWeb = $MainApp;
 		}
@@ -43,11 +42,11 @@ param
 	}
 
 	$sw = [Diagnostics.Stopwatch]::StartNew()
-	Write-Host "Setting TFSApi/tfsWeb machine env var [$tfsApi][$tfsWeb]" -ForegroundColor DarkCyan -NoNewline
+	Write-Host "Setting machine env var TFSApi: [$tfsApi], TFSWeb: [$tfsWeb]" -ForegroundColor DarkCyan -NoNewline
 
 	[Environment]::SetEnvironmentVariable('TFSApi', $tfsApi, [System.EnvironmentVariableTarget]::Machine);
 	[Environment]::SetEnvironmentVariable('tfsWeb', $tfsWeb, [System.EnvironmentVariableTarget]::Machine);
 
 	$sw.Stop()
-	Write-Host "`rSetting TFSApi/tfsWeb machine env var [$tfsApi][$tfsWeb] finished in [$($sw.Elapsed)]" -ForegroundColor Cyan
+	Write-Host "`rSetting machine env var TFSApi: [$tfsApi], TFSWeb: [$tfsWeb] finished in [$($sw.Elapsed)]" -ForegroundColor Cyan
 }

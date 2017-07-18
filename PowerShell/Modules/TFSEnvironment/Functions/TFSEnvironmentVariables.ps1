@@ -1,5 +1,5 @@
-﻿New-Variable TFSEnvironments -Scope Global -Force -Value (New-Object PSObject -Property @{ 
-    Dev =  @{ 
+﻿New-Variable TFSEnvironments -Scope Global -Force -Value (New-Object PSObject -Property @{
+	Dev =  @{
 		Name = 'Dev'; 
 		Color = 'Green';
 		Branches = @{
@@ -16,22 +16,22 @@
 		};
 	};
 
-	#Dev_US_FeatureBranch =  @{ 
-	#	Name = 'Dev_US_FeatureBranch'; 
-	#	Color = 'Cyan';
-	#	Branches = @{
-	#		tfsApi = @{
-	#			Name = 'tfsApi';
-	#			TFSName = 'Dev-WebApi';
-	#			TFSPath= '$/TFS Demo/US-Features-Dev-WebApi/US-FeatureBranch';
-	#		};
-	#		tfsWeb = @{
-	#			Name = 'tfsWeb';
-	#			TFSName = 'US-FeatureBranch';
-	#			TFSPath= '$/TFS Demo/US-Features-Dev-WebApp/US-FeatureBranch';
-	#		};
-	#	};
-	#};
+	Dev_US_FeatureBranch =  @{
+		Name = 'Dev_US_FeatureBranch';
+		Color = 'Cyan';
+		Branches = @{
+			tfsApi = @{
+				Name = 'tfsApi';
+				TFSName = 'Dev-WebApi';
+				TFSPath= '$/TFS Demo/Dev-WebApi-FeatureBr1';
+			};
+			tfsWeb = @{
+				Name = 'tfsWeb';
+				TFSName = 'US-FeatureBranch';
+				TFSPath= '$/TFS Demo/Dev-WebApp-FeatureBR1';
+			};
+		};
+	};
 
 	Main = @{
 		Name = 'Main';

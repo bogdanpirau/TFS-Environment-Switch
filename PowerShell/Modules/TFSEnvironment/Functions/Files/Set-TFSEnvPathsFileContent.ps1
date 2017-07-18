@@ -6,8 +6,8 @@ param
 (
 	[string]$DevApi,
 	[string]$DevApp,
-	#[string]$DevApi_US_FeatureBranch,
-	#[string]$DevApp_US_FeatureBranch,
+	[string]$DevApi_US_FeatureBranch,
+	[string]$DevApp_US_FeatureBranch,
 	[string]$MainApi,
 	[string]$MainApp,
 	[string]$RelApi,
@@ -15,11 +15,11 @@ param
 	[string]$HotApi,
 	[string]$HotApp
 )
-			$newFile = (
+	$newFile = (
 "`$global:TFSApi_Dev = '$DevApi';
 `$global:TFSWeb_Dev = '$DevApp';
-#`$global:TFSApi_Dev_US_FeatureBranch = '$DevApi_US_FeatureBranch';
-#`$global:TFSWeb_Dev_US_FeatureBranch = '$DevApp_US_FeatureBranch';
+`$global:TFSApi_Dev_US_FeatureBranch = '$DevApi_US_FeatureBranch';
+`$global:TFSWeb_Dev_US_FeatureBranch = '$DevApp_US_FeatureBranch';
 `$global:TFSApi_Main = '$MainApi';
 `$global:TFSWeb_Main = '$MainApp';
 `$global:TFSApi_Rel = '$RelApi';
