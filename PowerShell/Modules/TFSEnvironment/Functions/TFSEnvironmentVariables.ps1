@@ -18,7 +18,7 @@
 
 	#Dev_US_FeatureBranch =  @{ 
 	#	Name = 'Dev_US_FeatureBranch'; 
-	#	Color = 'Green';
+	#	Color = 'Cyan';
 	#	Branches = @{
 	#		tfsApi = @{
 	#			Name = 'tfsApi';

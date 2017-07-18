@@ -11,9 +11,9 @@ namespace DemoAPI.Controllers
     {
         // GET api/values
         [HttpGet]
-        public IEnumerable<string> Get()
+        public string Get()
         {
-            return new string[] { "value1", "value2" };
+            return "jsonProcessor({'Message': 'This is a message from Main Web API', 'Color': 'yellow'})";
         }
 
         // GET api/values/5

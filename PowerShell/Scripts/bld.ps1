@@ -1,5 +1,5 @@
 param(
-[ValidateSet('web', 'web-publish', 'api', 'api-publish')]
+[ValidateSet('all', 'web', 'web-publish', 'api', 'api-publish')]
 [string]$task='web'
 )
 write-host "root used=$root, time=$(Get-Date)"

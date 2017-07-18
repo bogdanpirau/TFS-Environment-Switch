@@ -39,5 +39,3 @@ function global:Prompt {
 
 	return ' '
 }
-
-write-host prompting

@@ -3,6 +3,7 @@ properties {
 
 task web-publish -depends stop-iis, web-restore, publish-web, start-iis
 task api-publish -depends stop-iis, api-restore, publish-api, start-iis
+task all -depends stop-iis, api-restore, publish-api, web-restore, publish-web, start-iis
 
 task stop-iis {
 	iisreset /stop
