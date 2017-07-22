@@ -12,19 +12,25 @@ Function Install-TFSEnvironmentAndDemo {
 	Get-CodeBase -DownloadLocation $destinationPath
 
 	#1 create the WebApi Application Pool
-	$wepApiAppPool = New-WebApplicationPool
+	$wepApiAppPool = New-IISApplicationPool DemoWebApi
 
 	#2 create the WebApi Web Site
-	
-	
-	#3 create the WebApp Application Pool
+	New-IISWebSite webapi.demmo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApi\DemoApi\DemoApi\bin\Debug\PublishOutput')
 
+	#3 update the hosts file
+	Add-HostsFileEntry webapi.demo.com
 	
-	#4 create the WebApp Web Site
+	#4 create the WebApp Application Pool
+	$wepAppAppPool = New-IISApplicationPool DemoWebApp
+	
+	#5 create the WebApp Web Site
+	New-IISWebSite webapp.demmo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApp\DemoApp\DemoApp\bin\Debug\PublishOutput')
 
-	#5 update the hosts file
-
-	#6 add the profile.ps1 file to the windows PowerShell Profile file
+	#6 update the hosts file
+	Add-HostsFileEntry webapp.demo.com
+	
+	#7 add the profile.ps1 file to the windows PowerShell Profile file	
+	Add-FileToPowerShellProfile (Join-Path $destinationPath 'PowerShell\Profile\profile.ps1')
 }
 
 Function Test-Git {
@@ -112,21 +118,31 @@ param(
 		Remove-WebSite -Name $Name
 	}
 	
-	New-Item $IISPath -bindings @{protocol="http";bindingInformation=":80:*";hostName=$Name} -physicalPath $PhysicalPath -Force
+	New-Item $IISPath -bindings @{protocol="http";bindingInformation="*:80:$Name";} -physicalPath $PhysicalPath -Force
 	#New-WebBinding -Name $Name -HostHeader $Name -Port 80 -Protocol http
+	#Remove-WebBinding 
+	
 	Set-ItemProperty $IISPath -name ApplicationPool -value $AppPool.Name
 }
 
+Function Add-HostsFileEntry {
+param(
+	[string]$Name
+)
+	$hostsPath = "$env:windir\System32\drivers\etc\hosts"
+	Add-Content $hostsPath "`n127.0.0.1 `t $name`n"
+}
 
-
-
-
-
-
-
-
-# Push-Location IIS:
-# Pop-Location
+Function Add-FileToPowerShellProfile {
+param(
+	[string]$psProfileFile
+)
+	If (!(Test-Path $profile)){
+		New-Item -typeFile $profile
+	}
+	
+	Add-Content $profile "`n`n$psProfileFile"
+}
 
 
 
