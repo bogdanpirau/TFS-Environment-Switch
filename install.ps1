@@ -1,37 +1,5 @@
-#Requires -Version 3.0 -Modules WebAdministration -RunAsAdministrator
+﻿#Requires -Version 3.0 -Modules WebAdministration -RunAsAdministrator
 Import-Module WebAdministration
-
-Function Install-TFSEnvironmentAndDemo {
-	If (!Test-Git) {
-		Return
-	}
-
-	$destinationPath = Get-DestinationFolder -DisplayText 'Select the location where to install the project'
-
-	#0 download files
-	Get-CodeBase -DownloadLocation $destinationPath
-
-	#1 create the WebApi Application Pool
-	$wepApiAppPool = New-IISApplicationPool DemoWebApi
-
-	#2 create the WebApi Web Site
-	New-IISWebSite webapi.demmo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApi\DemoApi\DemoApi\bin\Debug\PublishOutput')
-
-	#3 update the hosts file
-	Add-HostsFileEntry webapi.demo.com
-	
-	#4 create the WebApp Application Pool
-	$wepAppAppPool = New-IISApplicationPool DemoWebApp
-	
-	#5 create the WebApp Web Site
-	New-IISWebSite webapp.demmo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApp\DemoApp\DemoApp\bin\Debug\PublishOutput')
-
-	#6 update the hosts file
-	Add-HostsFileEntry webapp.demo.com
-	
-	#7 add the profile.ps1 file to the windows PowerShell Profile file	
-	Add-FileToPowerShellProfile (Join-Path $destinationPath 'PowerShell\Profile\profile.ps1')
-}
 
 Function Test-Git {
 	Try { 
@@ -146,3 +114,39 @@ param(
 
 
 
+Function Install-TFSEnvironmentAndDemo {
+	If (!(Test-Git)) {
+		Return
+	}
+
+	$destinationPath = Get-DestinationFolder -DisplayText 'Select the location where to install the project'
+
+	#0 download files
+	Get-CodeBase -DownloadLocation $destinationPath
+    $destinationPath = Join-Path $destinationPath 'TFS-Environment-Switch'
+
+	#1 create the WebApi Application Pool
+	$wepApiAppPool = New-IISApplicationPool DemoWebApi
+
+	#2 create the WebApi Web Site
+	New-IISWebSite webapi.demmo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApi\DemoApi\DemoApi\bin\Debug\PublishOutput') $wepApiAppPool
+
+	#3 update the hosts file
+	Add-HostsFileEntry webapi.demo.com
+	
+	#4 create the WebApp Application Pool
+	$wepAppAppPool = New-IISApplicationPool DemoWebApp
+	
+	#5 create the WebApp Web Site
+	New-IISWebSite webapp.demmo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApp\DemoApp\DemoApp\bin\Debug\PublishOutput') $wepAppAppPool
+
+	#6 update the hosts file
+	Add-HostsFileEntry webapp.demo.com
+	
+	#7 add the profile.ps1 file to the windows PowerShell Profile file	
+	Add-FileToPowerShellProfile (Join-Path $destinationPath 'PowerShell\Profile\profile.ps1')
+}
+
+
+
+Install-TFSEnvironmentAndDemo
