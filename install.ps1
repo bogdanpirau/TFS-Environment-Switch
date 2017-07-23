@@ -1,5 +1,5 @@
-﻿#Requires -Version 3.0 -Modules WebAdministration -RunAsAdministrator
-Import-Module WebAdministration
+﻿#Requires -Version 3.0 -RunAsAdministrator
+
 
 Function Test-Git {
 	Try { 
@@ -106,18 +106,40 @@ param(
 	[string]$psProfileFile
 )
 	If (!(Test-Path $profile)){
-		New-Item -typeFile $profile
+		New-Item -type File $profile
 	}
 	
-	Add-Content $profile "`n`n$psProfileFile"
+	Add-Content $profile "`n`n. '$psProfileFile'"
 }
 
+Function Install-Prerequisites {
+	iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
+	
+	. $profile
+	
+	cinst -fy dotnetcore
+	cinst -fy git
 
+	Dism.exe /Online /Enable-Feature /All /NoRestart /FeatureName:IIS-ManagementConsole /FeatureName:IIS-WindowsAuthentication /FeatureName:IIS-HttpCompressionStatic /FeatureName:IIS-ServerSideIncludes /FeatureName:IIS-ASPNET /FeatureName:IIS-DirectoryBrowsing /FeatureName:IIS-DefaultDocument /FeatureName:IIS-StaticContent /FeatureName:IIS-ISAPIFilter  /FeatureName:IIS-ISAPIExtensions /FeatureName:IIS-WebServerManagementTools /FeatureName:IIS-Performance  /FeatureName:IIS-HttpTracing /FeatureName:IIS-RequestMonitor /FeatureName:IIS-LoggingLibraries /FeatureName:IIS-Security /FeatureName:IIS-URLAuthorization /FeatureName:IIS-RequestFiltering  /FeatureName:IIS-NetFxExtensibility /FeatureName:IIS-HealthAndDiagnostics /FeatureName:IIS-HttpLogging /FeatureName:IIS-WebServerRole /FeatureName:IIS-WebServer  /FeatureName:IIS-CommonHttpFeatures /FeatureName:IIS-HttpErrors /FeatureName:IIS-HttpRedirect /FeatureName:IIS-ApplicationDevelopment /FeatureName:IIS-ApplicationInit	
+}
 
 Function Install-TFSEnvironmentAndDemo {
-	If (!(Test-Git)) {
-		Return
-	}
+	# If (!(Test-Git)) {
+		# Return
+	# }
+	
+	Install-Prerequisites
+    . $profile
+    Import-Module WebAdministration	
+	#install .net core
+	# If (!(Test-Dotnet)) {
+		# Return
+	# }
+	
+	#install IIS
+	# If (!(Test-IIS)) {
+		# Return
+	# }
 
 	$destinationPath = Get-DestinationFolder -DisplayText 'Select the location where to install the project'
 
@@ -129,7 +151,7 @@ Function Install-TFSEnvironmentAndDemo {
 	$wepApiAppPool = New-IISApplicationPool DemoWebApi
 
 	#2 create the WebApi Web Site
-	New-IISWebSite webapi.demmo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApi\DemoApi\DemoApi\bin\Debug\PublishOutput') $wepApiAppPool
+	New-IISWebSite webapi.demo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApi\DemoApi\DemoApi\bin\Debug\PublishOutput') $wepApiAppPool
 
 	#3 update the hosts file
 	Add-HostsFileEntry webapi.demo.com
@@ -138,13 +160,22 @@ Function Install-TFSEnvironmentAndDemo {
 	$wepAppAppPool = New-IISApplicationPool DemoWebApp
 	
 	#5 create the WebApp Web Site
-	New-IISWebSite webapp.demmo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApp\DemoApp\DemoApp\bin\Debug\PublishOutput') $wepAppAppPool
+	New-IISWebSite webapp.demo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApp\DemoApp\DemoApp\bin\Debug\PublishOutput') $wepAppAppPool
 
 	#6 update the hosts file
 	Add-HostsFileEntry webapp.demo.com
 	
 	#7 add the profile.ps1 file to the windows PowerShell Profile file	
 	Add-FileToPowerShellProfile (Join-Path $destinationPath 'PowerShell\Profile\profile.ps1')
+	
+	#8 Reload profile
+	. $Profile
+	
+	#run bld all
+	bld all
+	
+	#open webapp
+	ii 'http://webapp.demo.com'
 }
 
 
