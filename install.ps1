@@ -1,5 +1,6 @@
 ﻿#Requires -Version 3.0 -RunAsAdministrator
 
+Start-Transcript -OutputDirectory (split-path -parent $MyInvocation.MyCommand.Definition)
 
 Function Test-Git {
 	Try { 
@@ -72,7 +73,7 @@ param (
 	
 	Return $appPool
 }
- 
+
 Function New-IISWebSite {
 param(
 	[string]$Name,
@@ -101,37 +102,66 @@ param(
 	Add-Content $hostsPath "`n127.0.0.1 `t $name`n"
 }
 
+Function Add-PowerShellProfileFile {
+	If (!(Test-Path $profile)) {
+        $targetPath = [System.IO.Directory]::GetParent("$PROFILE")
+        
+        If (!(Test-Path $targetPath)) {
+            $newFolder = md $targetPath -Force -ErrorAction SilentlyContinue
+        }
+
+		Push-Location $targetPath
+		$newFile = New-Item -type File -Name ([System.IO.Path]::GetFileName("$PROFILE"))
+		Pop-Location
+	}
+}
+
 Function Add-FileToPowerShellProfile {
 param(
 	[string]$psProfileFile
 )
-	If (!(Test-Path $profile)){
-		New-Item -type File $profile
-	}
-	
 	Add-Content $profile "`n`n. '$psProfileFile'"
 }
 
 Function Install-Prerequisites {
 	iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
-	
-	. $profile
-	
-	cinst -fy dotnetcore
-	cinst -fy git
+
+	cinst -y dotnetcore-sdk
+	cinst -y dotnetcore
+	cinst -y git
 
 	Dism.exe /Online /Enable-Feature /All /NoRestart /FeatureName:IIS-ManagementConsole /FeatureName:IIS-WindowsAuthentication /FeatureName:IIS-HttpCompressionStatic /FeatureName:IIS-ServerSideIncludes /FeatureName:IIS-ASPNET /FeatureName:IIS-DirectoryBrowsing /FeatureName:IIS-DefaultDocument /FeatureName:IIS-StaticContent /FeatureName:IIS-ISAPIFilter  /FeatureName:IIS-ISAPIExtensions /FeatureName:IIS-WebServerManagementTools /FeatureName:IIS-Performance  /FeatureName:IIS-HttpTracing /FeatureName:IIS-RequestMonitor /FeatureName:IIS-LoggingLibraries /FeatureName:IIS-Security /FeatureName:IIS-URLAuthorization /FeatureName:IIS-RequestFiltering  /FeatureName:IIS-NetFxExtensibility /FeatureName:IIS-HealthAndDiagnostics /FeatureName:IIS-HttpLogging /FeatureName:IIS-WebServerRole /FeatureName:IIS-WebServer  /FeatureName:IIS-CommonHttpFeatures /FeatureName:IIS-HttpErrors /FeatureName:IIS-HttpRedirect /FeatureName:IIS-ApplicationDevelopment /FeatureName:IIS-ApplicationInit	
+
+	. $profile
+
+	Write-Host "dotnet version: $(dotnet --version)" -ForegroungColor Cyan
+}
+
+Function Set-EnvironmentVariables {
+	Param(
+		[Parameter(Mandatory=$True)]
+		[string]$destinationPath
+	)
+		Write-Host Setting environment variables
+
+	[Environment]::SetEnvironmentVariable("TFSApi", (Join-Path $destinationPath 'TFSDemo\Dev-WebApi'), 'Machine')
+	[Environment]::SetEnvironmentVariable("TFSWeb", (Join-Path $destinationPath 'TFSDemo\Dev-WebApp'), 'Machine')
 }
 
 Function Install-TFSEnvironmentAndDemo {
 	# If (!(Test-Git)) {
 		# Return
 	# }
-	
+
+	Add-PowerShellProfileFile
 	Install-Prerequisites
-    . $profile
-    Import-Module WebAdministration	
-	#install .net core
+
+
+	Import-Module WebAdministration
+
+	. "$Profile"
+
+    #install .net core
 	# If (!(Test-Dotnet)) {
 		# Return
 	# }
@@ -165,19 +195,24 @@ Function Install-TFSEnvironmentAndDemo {
 	#6 update the hosts file
 	Add-HostsFileEntry webapp.demo.com
 	
-	#7 add the profile.ps1 file to the windows PowerShell Profile file	
+	#7 set environment variables
+	Set-EnvironmentVariables $destinationPath
+
+	#8 add the profile.ps1 file to the windows PowerShell Profile file	
 	Add-FileToPowerShellProfile (Join-Path $destinationPath 'PowerShell\Profile\profile.ps1')
 	
-	#8 Reload profile
-	. $Profile
+	#9 Reload profile
+	. "$Profile"
 	
-	#run bld all
+	#10 run bld all
 	bld all
 	
-	#open webapp
-	ii 'http://webapp.demo.com'
+	#11 open webapp
+	start 'http://webapp.demo.com'
 }
 
 
 
 Install-TFSEnvironmentAndDemo
+
+Stop-Transcript
