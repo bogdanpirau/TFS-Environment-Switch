@@ -126,15 +126,23 @@ param(
 Function Install-Prerequisites {
 	iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
 
+	Dism.exe /Online /Enable-Feature /All /NoRestart /FeatureName:IIS-ManagementConsole /FeatureName:IIS-WindowsAuthentication /FeatureName:IIS-HttpCompressionStatic /FeatureName:IIS-ServerSideIncludes /FeatureName:IIS-ASPNET /FeatureName:IIS-DirectoryBrowsing /FeatureName:IIS-DefaultDocument /FeatureName:IIS-StaticContent /FeatureName:IIS-ISAPIFilter  /FeatureName:IIS-ISAPIExtensions /FeatureName:IIS-WebServerManagementTools /FeatureName:IIS-Performance  /FeatureName:IIS-HttpTracing /FeatureName:IIS-RequestMonitor /FeatureName:IIS-LoggingLibraries /FeatureName:IIS-Security /FeatureName:IIS-URLAuthorization /FeatureName:IIS-RequestFiltering  /FeatureName:IIS-NetFxExtensibility /FeatureName:IIS-HealthAndDiagnostics /FeatureName:IIS-HttpLogging /FeatureName:IIS-WebServerRole /FeatureName:IIS-WebServer  /FeatureName:IIS-CommonHttpFeatures /FeatureName:IIS-HttpErrors /FeatureName:IIS-HttpRedirect /FeatureName:IIS-ApplicationDevelopment /FeatureName:IIS-ApplicationInit	
+
 	cinst -y dotnetcore-sdk
 	cinst -y dotnetcore
+	cinst -y dotnetcore-windowshosting
 	cinst -y git
-
-	Dism.exe /Online /Enable-Feature /All /NoRestart /FeatureName:IIS-ManagementConsole /FeatureName:IIS-WindowsAuthentication /FeatureName:IIS-HttpCompressionStatic /FeatureName:IIS-ServerSideIncludes /FeatureName:IIS-ASPNET /FeatureName:IIS-DirectoryBrowsing /FeatureName:IIS-DefaultDocument /FeatureName:IIS-StaticContent /FeatureName:IIS-ISAPIFilter  /FeatureName:IIS-ISAPIExtensions /FeatureName:IIS-WebServerManagementTools /FeatureName:IIS-Performance  /FeatureName:IIS-HttpTracing /FeatureName:IIS-RequestMonitor /FeatureName:IIS-LoggingLibraries /FeatureName:IIS-Security /FeatureName:IIS-URLAuthorization /FeatureName:IIS-RequestFiltering  /FeatureName:IIS-NetFxExtensibility /FeatureName:IIS-HealthAndDiagnostics /FeatureName:IIS-HttpLogging /FeatureName:IIS-WebServerRole /FeatureName:IIS-WebServer  /FeatureName:IIS-CommonHttpFeatures /FeatureName:IIS-HttpErrors /FeatureName:IIS-HttpRedirect /FeatureName:IIS-ApplicationDevelopment /FeatureName:IIS-ApplicationInit	
 
 	. $profile
 
-	Write-Host "dotnet version: $(dotnet --version)" -ForegroungColor Cyan
+	$env:path += ';C:\program files\dotnet\;;C:\Program Files\Git\cmd;'
+
+	net stop was /y
+	net start w3svc
+
+	Write-Host -------------------------------------------------------------------------------------------------
+	Write-Host "dotnet version: $(dotnet --version)" -ForegroundColor Cyan
+	Write-Host -------------------------------------------------------------------------------------------------
 }
 
 Function Set-EnvironmentVariables {
@@ -144,8 +152,14 @@ Function Set-EnvironmentVariables {
 	)
 		Write-Host Setting environment variables
 
-	[Environment]::SetEnvironmentVariable("TFSApi", (Join-Path $destinationPath 'TFSDemo\Dev-WebApi'), 'Machine')
-	[Environment]::SetEnvironmentVariable("TFSWeb", (Join-Path $destinationPath 'TFSDemo\Dev-WebApp'), 'Machine')
+	$tfsApiPath = (Join-Path $destinationPath 'TFSDemo\Dev-WebApi')
+	$tfsWebPath = (Join-Path $destinationPath 'TFSDemo\Dev-WebApp')
+
+	[Environment]::SetEnvironmentVariable("TFSApi", $tfsApiPath, 'Machine')
+	[Environment]::SetEnvironmentVariable("TFSWeb", $tfsWebPath, 'Machine')
+
+	$env:TFSApi = $tfsApiPath
+	$env:TFSWeb = $tfsWebPath    
 }
 
 Function Install-TFSEnvironmentAndDemo {
@@ -153,9 +167,10 @@ Function Install-TFSEnvironmentAndDemo {
 		# Return
 	# }
 
+	$destinationPath = Get-DestinationFolder -DisplayText 'Select the location where to install the project'
+
 	Add-PowerShellProfileFile
 	Install-Prerequisites
-
 
 	Import-Module WebAdministration
 
@@ -171,11 +186,9 @@ Function Install-TFSEnvironmentAndDemo {
 		# Return
 	# }
 
-	$destinationPath = Get-DestinationFolder -DisplayText 'Select the location where to install the project'
-
 	#0 download files
 	Get-CodeBase -DownloadLocation $destinationPath
-    $destinationPath = Join-Path $destinationPath 'TFS-Environment-Switch'
+	$destinationPath = Join-Path $destinationPath 'TFS-Environment-Switch'
 
 	#1 create the WebApi Application Pool
 	$wepApiAppPool = New-IISApplicationPool DemoWebApi
@@ -210,7 +223,6 @@ Function Install-TFSEnvironmentAndDemo {
 	#11 open webapp
 	start 'http://webapp.demo.com'
 }
-
 
 
 Install-TFSEnvironmentAndDemo
