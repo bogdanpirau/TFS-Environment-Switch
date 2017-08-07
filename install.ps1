@@ -1,14 +1,53 @@
 ﻿#Requires -Version 3.0 -RunAsAdministrator
-
 Start-Transcript -OutputDirectory (split-path -parent $MyInvocation.MyCommand.Definition)
 
-Function Test-Git {
-	Try { 
-		$gitVersion = git --version
-		Return $True
-	} catch { 
-		Write-Host Please install Git -ForgroundColor Red
-		Return $False 
+Function Write-FancyHost {
+param(
+	[string]$text
+)
+	Write-Host -------------------------------------------------------------------------------------------------
+	Write-Host "$text" -ForegroundColor Cyan
+	Write-Host -------------------------------------------------------------------------------------------------
+}
+
+Function Start-Timer {
+param(
+	[System.Diagnostics.Stopwatch]$stopWatch
+)
+	If ($stopWatch -eq $Null) {
+		$stopWatch = New-Object System.Diagnostics.Stopwatch
+	}
+
+	$stopWatch.Start()
+
+	Return $stopWatch
+}
+
+
+Function Stop-Timer {
+param(
+	[System.Diagnostics.Stopwatch]$stopWatch,
+	[string]$label = 'Execution time for ',
+	[String]$text = '',
+	[Switch]$restart,
+	[Switch]$total
+)
+	$stopWatch.Stop()
+
+	If ($total.IsPresent) {
+		$props = @{ 'Step' = '-------------------------------------------------'; 'Time' = '----------------' }
+		$Script:executionTimes += (New-Object –TypeName PSObject –Prop $props)
+
+		$text = 'Total execution time'
+	}
+
+	$props = @{ 'Step' = (Get-Culture).TextInfo.ToTitleCase($text[0]) + $text.Substring(1); 'Time' = $stopWatch.Elapsed.ToString() }
+	$Script:executionTimes += (New-Object –TypeName PSObject –Prop $props)
+
+	Write-FancyHost "$label$text`: $($props.Time)"
+
+	If ($restart.IsPresent) {
+		$stopWatch.Restart()
 	}
 }
 
@@ -21,7 +60,7 @@ param
 
 	While (($folder -eq $Null) -or !(Test-Path $folder)) {
 		$formsAssembly = [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
-		
+
 		$folderBrowserDialog = New-Object System.Windows.Forms.FolderBrowserDialog
 		$folderBrowserDialog.Description = $DisplayText
 		$folderBrowserDialog.RootFolder = "MyComputer"
@@ -36,27 +75,82 @@ param
 			}
 		}
 	}
-	
+
 	Return $folder
+}
+
+Function Test-DotNetCore {
+	Try {
+		$dotNetVersion = dotnet --version
+		Return $True
+	} catch {
+		Return $False
+	}
+}
+
+Function Test-Git {
+	Try {
+		$gitVersion = git --version
+		Return $True
+	} catch {
+		Return $False
+	}
+}
+
+Function Install-Prerequisites {
+	$innerSw = Start-Timer
+
+	iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
+	Stop-Timer $innerSw -text "  --  Installing chocolatey" -restart
+
+	Dism.exe /Online /Enable-Feature /All /NoRestart /FeatureName:IIS-ManagementConsole /FeatureName:IIS-WindowsAuthentication /FeatureName:IIS-HttpCompressionStatic /FeatureName:IIS-ServerSideIncludes /FeatureName:IIS-ASPNET /FeatureName:IIS-DirectoryBrowsing /FeatureName:IIS-DefaultDocument /FeatureName:IIS-StaticContent /FeatureName:IIS-ISAPIFilter  /FeatureName:IIS-ISAPIExtensions /FeatureName:IIS-WebServerManagementTools /FeatureName:IIS-Performance  /FeatureName:IIS-HttpTracing /FeatureName:IIS-RequestMonitor /FeatureName:IIS-LoggingLibraries /FeatureName:IIS-Security /FeatureName:IIS-URLAuthorization /FeatureName:IIS-RequestFiltering /FeatureName:IIS-NetFxExtensibility /FeatureName:IIS-HealthAndDiagnostics /FeatureName:IIS-HttpLogging /FeatureName:IIS-WebServerRole /FeatureName:IIS-WebServer /FeatureName:IIS-CommonHttpFeatures /FeatureName:IIS-HttpErrors /FeatureName:IIS-HttpRedirect /FeatureName:IIS-ApplicationDevelopment
+	Stop-Timer $innerSw -text "  -- Installing IIS & tools" -restart
+
+	If (!(Test-DotNetCore)) {
+		cinst -y dotnetcore-sdk
+		Stop-Timer $innerSw -text "  --  Installing DotNet core SDK" -restart
+
+		cinst -y dotnetcore
+		Stop-Timer $innerSw -text "  --  Installing DotNet core" -restart
+	}
+
+	cinst -y dotnetcore-windowshosting
+	Stop-Timer $innerSw -text "  --  Installing DotNet hosting" -restart
+
+	If (!(Test-Git)) {
+		cinst -y git
+		Stop-Timer $innerSw -text "  --  Installing Git" -restart
+	}
+
+	. $profile
+
+	$env:path += ';C:\program files\dotnet\;;C:\Program Files\Git\cmd;'
+
+	net stop was /y
+	net start w3svc
+	Stop-Timer $innerSw -text "  --  Restarting WAS/W3SVC" -restart
+
+	dotnet publish
+	Stop-Timer $innerSw -text "  --  Initializing DotNet" -restart
 }
 
 Function Get-CodeBase {
 param
 (
 	[Parameter(Mandatory=$true)]
-	[string]$DownloadLocation 
+	[string]$DownloadLocation
 )
 	Push-Location $DownloadLocation
-	
-	git clone https://github.com/bogdanpirau/TFS-Environment-Switch.git	
-	
+
+	git clone https://github.com/bogdanpirau/TFS-Environment-Switch.git
+
 	Pop-Location
 }
 
 Function New-IISApplicationPool {
 param (
 	[Parameter(Mandatory=$true)]
-	[string]$Name	
+	[string]$Name
 )
 	$IISPath = (Join-Path IIS:\AppPools $Name)
 
@@ -70,7 +164,7 @@ param (
 	$appPool.ManagedRuntimeVersion = ''
 	$appPool.ManagedPipelineMode = 'Integrated'
 	$appPool | Set-Item -Path $IISPath
-	
+
 	Return $appPool
 }
 
@@ -82,15 +176,12 @@ param(
 )
 	$IISPath = (Join-Path IIS:\Sites $Name)
 
-	# create new website
 	If (Test-Path $IISPath){
 		Remove-WebSite -Name $Name
 	}
-	
+
 	New-Item $IISPath -bindings @{protocol="http";bindingInformation="*:80:$Name";} -physicalPath $PhysicalPath -Force
-	#New-WebBinding -Name $Name -HostHeader $Name -Port 80 -Protocol http
-	#Remove-WebBinding 
-	
+
 	Set-ItemProperty $IISPath -name ApplicationPool -value $AppPool.Name
 }
 
@@ -104,11 +195,11 @@ param(
 
 Function Add-PowerShellProfileFile {
 	If (!(Test-Path $profile)) {
-        $targetPath = [System.IO.Directory]::GetParent("$PROFILE")
-        
-        If (!(Test-Path $targetPath)) {
-            $newFolder = md $targetPath -Force -ErrorAction SilentlyContinue
-        }
+		$targetPath = [System.IO.Directory]::GetParent("$PROFILE")
+
+		If (!(Test-Path $targetPath)) {
+			$newFolder = md $targetPath -Force -ErrorAction SilentlyContinue
+		}
 
 		Push-Location $targetPath
 		$newFile = New-Item -type File -Name ([System.IO.Path]::GetFileName("$PROFILE"))
@@ -120,38 +211,16 @@ Function Add-FileToPowerShellProfile {
 param(
 	[string]$psProfileFile
 )
-	Add-Content $profile "`n`n. '$psProfileFile'"
-}
+	Add-Content $Profile "`n`n. '$psProfileFile'"
 
-Function Install-Prerequisites {
-	iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
-
-	Dism.exe /Online /Enable-Feature /All /NoRestart /FeatureName:IIS-ManagementConsole /FeatureName:IIS-WindowsAuthentication /FeatureName:IIS-HttpCompressionStatic /FeatureName:IIS-ServerSideIncludes /FeatureName:IIS-ASPNET /FeatureName:IIS-DirectoryBrowsing /FeatureName:IIS-DefaultDocument /FeatureName:IIS-StaticContent /FeatureName:IIS-ISAPIFilter  /FeatureName:IIS-ISAPIExtensions /FeatureName:IIS-WebServerManagementTools /FeatureName:IIS-Performance  /FeatureName:IIS-HttpTracing /FeatureName:IIS-RequestMonitor /FeatureName:IIS-LoggingLibraries /FeatureName:IIS-Security /FeatureName:IIS-URLAuthorization /FeatureName:IIS-RequestFiltering  /FeatureName:IIS-NetFxExtensibility /FeatureName:IIS-HealthAndDiagnostics /FeatureName:IIS-HttpLogging /FeatureName:IIS-WebServerRole /FeatureName:IIS-WebServer  /FeatureName:IIS-CommonHttpFeatures /FeatureName:IIS-HttpErrors /FeatureName:IIS-HttpRedirect /FeatureName:IIS-ApplicationDevelopment /FeatureName:IIS-ApplicationInit	
-
-	cinst -y dotnetcore-sdk
-	cinst -y dotnetcore
-	cinst -y dotnetcore-windowshosting
-	cinst -y git
-
-	. $profile
-
-	$env:path += ';C:\program files\dotnet\;;C:\Program Files\Git\cmd;'
-
-	net stop was /y
-	net start w3svc
-
-	Write-Host -------------------------------------------------------------------------------------------------
-	Write-Host "dotnet version: $(dotnet --version)" -ForegroundColor Cyan
-	Write-Host -------------------------------------------------------------------------------------------------
+	. "$Profile"
 }
 
 Function Set-EnvironmentVariables {
-	Param(
-		[Parameter(Mandatory=$True)]
-		[string]$destinationPath
-	)
-		Write-Host Setting environment variables
-
+param(
+	[Parameter(Mandatory=$True)]
+	[string]$destinationPath
+)
 	$tfsApiPath = (Join-Path $destinationPath 'TFSDemo\Dev-WebApi')
 	$tfsWebPath = (Join-Path $destinationPath 'TFSDemo\Dev-WebApp')
 
@@ -159,72 +228,99 @@ Function Set-EnvironmentVariables {
 	[Environment]::SetEnvironmentVariable("TFSWeb", $tfsWebPath, 'Machine')
 
 	$env:TFSApi = $tfsApiPath
-	$env:TFSWeb = $tfsWebPath    
+	$env:TFSWeb = $tfsWebPath
 }
 
-Function Install-TFSEnvironmentAndDemo {
-	# If (!(Test-Git)) {
-		# Return
-	# }
-
-	$destinationPath = Get-DestinationFolder -DisplayText 'Select the location where to install the project'
-
-	Add-PowerShellProfileFile
-	Install-Prerequisites
-
+Function New-IISConfiguration {
+param(
+	[string]$Name,
+	[string]$physicalPath
+)
 	Import-Module WebAdministration
 
-	. "$Profile"
+	$wepApiAppPool = New-IISApplicationPool $Name
 
-    #install .net core
-	# If (!(Test-Dotnet)) {
-		# Return
-	# }
-	
-	#install IIS
-	# If (!(Test-IIS)) {
-		# Return
-	# }
+	New-IISWebSite $Name $physicalPath $wepApiAppPool
 
-	#0 download files
-	Get-CodeBase -DownloadLocation $destinationPath
-	$destinationPath = Join-Path $destinationPath 'TFS-Environment-Switch'
-
-	#1 create the WebApi Application Pool
-	$wepApiAppPool = New-IISApplicationPool DemoWebApi
-
-	#2 create the WebApi Web Site
-	New-IISWebSite webapi.demo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApi\DemoApi\DemoApi\bin\Debug\PublishOutput') $wepApiAppPool
-
-	#3 update the hosts file
-	Add-HostsFileEntry webapi.demo.com
-	
-	#4 create the WebApp Application Pool
-	$wepAppAppPool = New-IISApplicationPool DemoWebApp
-	
-	#5 create the WebApp Web Site
-	New-IISWebSite webapp.demo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApp\DemoApp\DemoApp\bin\Debug\PublishOutput') $wepAppAppPool
-
-	#6 update the hosts file
-	Add-HostsFileEntry webapp.demo.com
-	
-	#7 set environment variables
-	Set-EnvironmentVariables $destinationPath
-
-	#8 add the profile.ps1 file to the windows PowerShell Profile file	
-	Add-FileToPowerShellProfile (Join-Path $destinationPath 'PowerShell\Profile\profile.ps1')
-	
-	#9 Reload profile
-	. "$Profile"
-	
-	#10 run bld all
-	bld all
-	
-	#11 open webapp
-	start 'http://webapp.demo.com'
+	Add-HostsFileEntry $Name
 }
 
+Function Print-NetworkStatistics {
+param(
+	$initialNetworkStatistics,
+	$finalNetworkStatistics
+)
+	$receivedBytes = ($finalNetworkStatistics.ReceivedBytes | Sort | Select -last 1) - ($initialNetworkStatistics.ReceivedBytes | Sort | Select -last 1)
+	$sentBytes = ($finalNetworkStatistics.SentBytes | Sort | Select -last 1) - ($initialNetworkStatistics.SentBytes | Sort | Select -last 1)
 
-Install-TFSEnvironmentAndDemo
+	$totalReceived = $receivedBytes / 1GB
+	$receivedUnit = 'GB'
+
+	If ($totalReceived -lt 1) {
+		$totalReceived = $receivedBytes / 1MB
+		$receivedUnit = 'MB'
+	}
+
+	$totalSent = $sentBytes / 1GB
+	$sentUnit = 'GB'
+
+	If ($totalSent -lt 1) {
+		$totalSent = $sentBytes / 1MB
+		$sentUnit = 'MB'
+	}
+
+	Write-FancyHost "Received $totalReceived $receivedUnit while running this script. Sent $totalSent $sentUnit".
+}
+
+Function Install-TFSEnvironment {
+	$mainSW = Start-Timer
+	$sw = Start-Timer
+	$Script:executionTimes = @()
+
+	$initialNetworkStatistics = Get-NetAdapterStatistics
+	Stop-Timer $sw -text "getting initial Network statistics" -restart
+
+	$destinationPath = Get-DestinationFolder -DisplayText 'Select the location where to install the project'
+	Stop-Timer $sw -text "selecting a destination location" -restart
+
+	Add-PowerShellProfileFile
+	Stop-Timer $sw -text "creating the default user PowerShell profile file" -restart
+
+	Install-Prerequisites
+	Stop-Timer $sw -text "installing prerequisites" -restart
+
+	Get-CodeBase -DownloadLocation $destinationPath
+	$destinationPath = Join-Path $destinationPath 'TFS-Environment-Switch'
+	Stop-Timer $sw -text "downloading source code" -restart
+
+	New-IISConfiguration webapi.demo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApi\DemoApi\DemoApi\bin\Debug\PublishOutput')
+	Stop-Timer $sw -text "configuring webapi.demo.com in IIS" -restart
+
+	New-IISConfiguration webapp.demo.com (Join-Path $destinationPath 'TFSDemo\Dev-WebApp\DemoApp\DemoApp\bin\Debug\PublishOutput')
+	Stop-Timer $sw -text "configuring webapp.demo.com in IIS" -restart
+
+	Set-EnvironmentVariables $destinationPath
+	Stop-Timer $sw -text "setting system environment variables" -restart
+
+	Add-FileToPowerShellProfile (Join-Path $destinationPath 'PowerShell\Profile\profile.ps1')
+	Stop-Timer $sw -text "setting up PowerShell profile" -restart
+
+	bld all
+	Stop-Timer $sw -text "setting up web applications" -restart
+
+	start 'http://webapp.demo.com'
+	Stop-Timer $sw -text "for opening the website" -restart
+
+	$finalNetworkStatistics = Get-NetAdapterStatistics
+	Stop-Timer $sw -text "getting final Network statistics" -restart
+
+	Print-NetworkStatistics $initialNetworkStatistics $finalNetworkStatistics
+
+	Stop-Timer $mainSW -Label 'Total execution time' -total
+
+	Write-FancyHost ($Script:executionTimes | Select Step, Time | Out-String)
+}
+
+Install-TFSEnvironment
 
 Stop-Transcript
