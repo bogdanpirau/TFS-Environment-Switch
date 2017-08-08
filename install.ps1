@@ -1,4 +1,6 @@
 ﻿#Requires -Version 3.0 -RunAsAdministrator
+param([switch]$y) #accept default location of [C:\test] for testing purposes
+
 Start-Transcript -OutputDirectory (split-path -parent $MyInvocation.MyCommand.Definition)
 
 Function Write-FancyHost {
@@ -58,6 +60,11 @@ param
 )
 	$folder = $Null
 
+	If ($y.IsPresent) {
+		$folder = 'C:\test'
+		$newFolder = md $folder -Force -ErrorAction SilentlyContinue
+	}
+
 	While (($folder -eq $Null) -or !(Test-Path $folder)) {
 		$formsAssembly = [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 
@@ -76,7 +83,56 @@ param
 		}
 	}
 
+	Write-Host "Selected folder: [$folder]."
+
 	Return $folder
+}
+
+Function Install-Chocolatey {
+	$retries = 0
+	$success = $false
+
+	Do {
+		$success = $true
+
+		Try {
+			iex ((new-object net.webclient).DownloadString("https://chocolatey.org/install.ps1"))
+		}
+		Catch {
+			$success = $false
+		}
+		$retries++
+
+		If (!$success) {
+			Write-FancyHost "Try $retries for installing chocolatey"
+		}
+	}
+	While ($success -eq $false -and $retries -lt 3)
+
+	If (!$success) {
+		Throw "Tried 3 times to install chocolatey without success. Please check the [chocolatey] error logs and try to fix the issues."
+	}
+}
+
+
+Function Install-IISAndTools {
+	$retries = 0
+	$success = $false
+
+	Do {
+		Dism.exe /Online /Enable-Feature /All /NoRestart /FeatureName:IIS-ManagementConsole /FeatureName:IIS-WindowsAuthentication /FeatureName:IIS-HttpCompressionStatic /FeatureName:IIS-ServerSideIncludes /FeatureName:IIS-ASPNET /FeatureName:IIS-DirectoryBrowsing /FeatureName:IIS-DefaultDocument /FeatureName:IIS-StaticContent /FeatureName:IIS-ISAPIFilter  /FeatureName:IIS-ISAPIExtensions /FeatureName:IIS-WebServerManagementTools /FeatureName:IIS-Performance  /FeatureName:IIS-HttpTracing /FeatureName:IIS-RequestMonitor /FeatureName:IIS-LoggingLibraries /FeatureName:IIS-Security /FeatureName:IIS-URLAuthorization /FeatureName:IIS-RequestFiltering /FeatureName:IIS-NetFxExtensibility /FeatureName:IIS-HealthAndDiagnostics /FeatureName:IIS-HttpLogging /FeatureName:IIS-WebServerRole /FeatureName:IIS-WebServer /FeatureName:IIS-CommonHttpFeatures /FeatureName:IIS-HttpErrors /FeatureName:IIS-HttpRedirect /FeatureName:IIS-ApplicationDevelopment
+		$success = $?
+		$retries++
+
+		If (!$success) {
+			Write-FancyHost "Try $retries for installing IIS & Tools"
+		}
+	}
+	While ($success -eq $false -and $retries -lt 3)
+
+	If (!$success) {
+		Throw "Tried 3 times to install IIS & Tools without success. Please check the [IIS] error logs and try to fix the issues."
+	}
 }
 
 Function Test-DotNetCore {
@@ -100,10 +156,10 @@ Function Test-Git {
 Function Install-Prerequisites {
 	$innerSw = Start-Timer
 
-	iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
+	Install-Chocolatey
 	Stop-Timer $innerSw -text "  --  Installing chocolatey" -restart
 
-	Dism.exe /Online /Enable-Feature /All /NoRestart /FeatureName:IIS-ManagementConsole /FeatureName:IIS-WindowsAuthentication /FeatureName:IIS-HttpCompressionStatic /FeatureName:IIS-ServerSideIncludes /FeatureName:IIS-ASPNET /FeatureName:IIS-DirectoryBrowsing /FeatureName:IIS-DefaultDocument /FeatureName:IIS-StaticContent /FeatureName:IIS-ISAPIFilter  /FeatureName:IIS-ISAPIExtensions /FeatureName:IIS-WebServerManagementTools /FeatureName:IIS-Performance  /FeatureName:IIS-HttpTracing /FeatureName:IIS-RequestMonitor /FeatureName:IIS-LoggingLibraries /FeatureName:IIS-Security /FeatureName:IIS-URLAuthorization /FeatureName:IIS-RequestFiltering /FeatureName:IIS-NetFxExtensibility /FeatureName:IIS-HealthAndDiagnostics /FeatureName:IIS-HttpLogging /FeatureName:IIS-WebServerRole /FeatureName:IIS-WebServer /FeatureName:IIS-CommonHttpFeatures /FeatureName:IIS-HttpErrors /FeatureName:IIS-HttpRedirect /FeatureName:IIS-ApplicationDevelopment
+	Install-IISAndTools
 	Stop-Timer $innerSw -text "  -- Installing IIS & tools" -restart
 
 	If (!(Test-DotNetCore)) {
