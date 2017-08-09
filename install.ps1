@@ -114,7 +114,6 @@ Function Install-Chocolatey {
 	}
 }
 
-
 Function Install-IISAndTools {
 	$retries = 0
 	$success = $false
@@ -144,6 +143,19 @@ Function Test-DotNetCore {
 	}
 }
 
+Function Install-DotNetCore {
+	If (!(Test-DotNetCore)) {
+		cinst -y dotnetcore-sdk
+		cinst -y dotnetcore
+	}
+}
+
+Function Install-DotNetCoreWindowsHosting {
+	If (!(Test-DotNetCore)) {
+		cinst -y dotnetcore-windowshosting
+	}
+}
+
 Function Test-Git {
 	Try {
 		$gitVersion = git --version
@@ -151,6 +163,27 @@ Function Test-Git {
 	} catch {
 		Return $False
 	}
+}
+
+Function Install-Git {
+	If (!(Test-Git)) {
+		cinst -y git
+	}
+}
+
+Function Update-PowerShellPath {
+	. $profile
+
+	$env:path += ';C:\program files\dotnet\;C:\Program Files\Git\cmd;'
+}
+
+Function Restart-IISServices {
+	net stop was /y
+	net start w3svc
+}
+
+Function Setup-DotNetCore {
+	dotnet publish
 }
 
 Function Install-Prerequisites {
@@ -162,31 +195,21 @@ Function Install-Prerequisites {
 	Install-IISAndTools
 	Stop-Timer $innerSw -text "  -- Installing IIS & tools" -restart
 
-	If (!(Test-DotNetCore)) {
-		cinst -y dotnetcore-sdk
-		Stop-Timer $innerSw -text "  --  Installing DotNet core SDK" -restart
+	Install-DotNetCore
+	Stop-Timer $innerSw -text "  --  Installing DotNet core" -restart
 
-		cinst -y dotnetcore
-		Stop-Timer $innerSw -text "  --  Installing DotNet core" -restart
-	}
-
-	cinst -y dotnetcore-windowshosting
+	Install-DotNetCoreWindowsHosting
 	Stop-Timer $innerSw -text "  --  Installing DotNet hosting" -restart
 
-	If (!(Test-Git)) {
-		cinst -y git
-		Stop-Timer $innerSw -text "  --  Installing Git" -restart
-	}
+	Install-Git
+	Stop-Timer $innerSw -text "  --  Installing Git" -restart
 
-	. $profile
+	Update-PowerShellPath
 
-	$env:path += ';C:\program files\dotnet\;;C:\Program Files\Git\cmd;'
-
-	net stop was /y
-	net start w3svc
+	Restart-IISServices
 	Stop-Timer $innerSw -text "  --  Restarting WAS/W3SVC" -restart
 
-	dotnet publish
+	Setup-DotNetCore
 	Stop-Timer $innerSw -text "  --  Initializing DotNet" -restart
 }
 
