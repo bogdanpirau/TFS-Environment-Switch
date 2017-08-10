@@ -193,7 +193,7 @@ Function Install-Prerequisites {
 	Stop-Timer $innerSw -text "  --  Installing chocolatey" -restart
 
 	Install-IISAndTools
-	Stop-Timer $innerSw -text "  -- Installing IIS & tools" -restart
+	Stop-Timer $innerSw -text "  --  Installing IIS & tools" -restart
 
 	Install-DotNetCore
 	Stop-Timer $innerSw -text "  --  Installing DotNet core" -restart
