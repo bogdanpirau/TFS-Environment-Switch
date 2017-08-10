@@ -15,28 +15,4 @@ Function Map-TFSPath($tfsPath, $localPath) {
 	Write-Host Downloading sources -ForegroundColor DarkCyan -NoNewLine
 	$downloadedSources = tf get "$tfsPath" /recursive
 	Write-Host "`rDownloading sources finshed" -ForegroundColor Cyan
-
-	$webAppPrjPath = "$localPath\iFOREX Framework\IFOREX.Clients\iFOREX.Clients.Web\iFOREX.Clients.Web.csproj"
-	If (Test-Path $webAppPrjPath) {
-		$procCores = WmiObject -class win32_processor -Property "numberofcores" | select -ExpandProperty NumberOfCores
-		
-		Write-Host Building WebApp project [$webAppPrjPath] -ForegroundColor DarkCyan -NoNewLine
-		."$msBuildPath\MSBuild.exe" $webAppPrjPath /m:$procCores /verbosity:m /clp:ErrorsOnly /nologo /t:build
-		Write-Host "`rBuilding WebApp project [$webAppPrjPath] finshed" -ForegroundColor Cyan
-	}
-	
-	$nodeUtilsPath = "$localPath\iFOREX Framework\IFOREX.Clients\iFOREX.Clients.Web\nodeUtils";
-	If (Test-Path "$nodeUtilsPath") {
-		Write-Host Installing npm packages -ForegroundColor DarkCyan -NoNewLine
-
-		Try {
-			Push-Location "$nodeUtilsPath"
-			npm install
-		}
-		Catch {
-			Pop-Location
-		}
-
-		Write-Host "`rInstalling npm packages finshed" -ForegroundColor Cyan
-	}
 }

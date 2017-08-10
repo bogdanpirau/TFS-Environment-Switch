@@ -1,4 +1,7 @@
-﻿Function Get-TFSMappings {
+﻿#
+# Get-TFSMappings.ps1
+#
+Function Get-TFSMappings {
 	$workspaces = @(Get-TFSWorkspaces)
 
 	If ($workspaces[0] -eq $Null){
