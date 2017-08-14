@@ -6,7 +6,7 @@ param(
 [string]$TfsUrl = (Get-TFSCollection),
 [switch]$IncludeDeletedBranches
 )
-	[psobject] $tfs = [Microsoft.TeamFoundation.Client.TeamFoundationServerFactory]::GetServer($TfsUrl)
+	[PSObject] $tfs = [Microsoft.TeamFoundation.Client.TeamFoundationServerFactory]::GetServer($TfsUrl)
 	$vcs = $tfs.GetService([type]"Microsoft.TeamFoundation.VersionControl.Client.VersionControlServer")
 	$rootBranches = $vcs.QueryRootBranchObjects('OneLevel')
 
