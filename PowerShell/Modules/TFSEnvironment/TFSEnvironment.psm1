@@ -12,17 +12,20 @@ Export-ModuleMember -Function Disable-TFSEnvironment
 
 # TFS Branches utility functions
 
-$TFSpath = "c:\Program Files\Common Files\Microsoft Shared\Team Foundation Server\14.0"
+$TFSAssembliesPath = "C:\Program Files\Common Files\Microsoft Shared\Team Foundation Server\14.0"
 
-[void][System.Reflection.Assembly]::LoadFrom("$TFSpath\Microsoft.TeamFoundation.Client.dll")
-[void][System.Reflection.Assembly]::LoadFrom("$TFSpath\Microsoft.TeamFoundation.Common.dll")
-[void][System.Reflection.Assembly]::LoadFrom("$TFSpath\Microsoft.TeamFoundation.WorkItemTracking.Client.dll")
-[void][System.Reflection.Assembly]::LoadFrom("$TFSpath\Microsoft.TeamFoundation.VersionControl.Client.dll")
-[void][System.Reflection.Assembly]::LoadFrom("$TFSpath\Microsoft.TeamFoundation.VersionControl.Client.dll")
+If (Test-Path $TFSAssembliesPath) {
+	#move to a separate TFS module
+	[void][System.Reflection.Assembly]::LoadFrom("$TFSAssembliesPath\Microsoft.TeamFoundation.Client.dll")
+	[void][System.Reflection.Assembly]::LoadFrom("$TFSAssembliesPath\Microsoft.TeamFoundation.Common.dll")
+	[void][System.Reflection.Assembly]::LoadFrom("$TFSAssembliesPath\Microsoft.TeamFoundation.WorkItemTracking.Client.dll")
+	[void][System.Reflection.Assembly]::LoadFrom("$TFSAssembliesPath\Microsoft.TeamFoundation.VersionControl.Client.dll")
+	[void][System.Reflection.Assembly]::LoadFrom("$TFSAssembliesPath\Microsoft.TeamFoundation.VersionControl.Client.dll")
 
-Export-ModuleMember -Function Get-TFSBranchChildren
-Export-ModuleMember -Function Get-TFSBranches
-Export-ModuleMember -Function Get-TFSBranchIerachyTree
-Export-ModuleMember -Function Get-TFSBranchParent
+	Export-ModuleMember -Function Get-TFSBranchChildren
+	Export-ModuleMember -Function Get-TFSBranches
+	Export-ModuleMember -Function Get-TFSBranchIerachyTree
+	Export-ModuleMember -Function Get-TFSBranchParent
+}
 
 # Export-ModuleMember -Function *-*
