@@ -30,6 +30,7 @@
     <Folder Include="Functions\" />
     <Folder Include="Functions\Files\" />
     <Folder Include="Functions\IIS\" />
+    <Folder Include="Functions\Env\" />
     <Folder Include="Functions\TFS-Branches\" />
     <Folder Include="Functions\TFS\" />
     <Folder Include="Functions\Utils\" />
@@ -37,6 +38,8 @@
   <ItemGroup>
     <Compile Include="Functions\Disable-TFSEnvironment.ps1" />
     <Compile Include="Functions\Enable-TFSEnvironment.ps1" />
+    <Compile Include="Functions\Env\Get-Environment.ps1" />
+    <Compile Include="Functions\Env\New-Environment.ps1" />
     <Compile Include="Functions\Get-TFSEnvironment.ps1" />
     <Compile Include="Functions\Initialize-TFSEnvironment.ps1" />
     <Compile Include="Functions\Set-TFSEnvironment.ps1" />

@@ -1,4 +1,18 @@
-﻿New-Variable TFSEnvironments -Scope Global -Force -Value (New-Object PSObject -Property @{
+﻿$tfsEnvFile = Join-Path (Split-Path "$profile") 'TFSEnvironment.ps1'
+$tfsEnvPathsFile = Join-Path (Split-Path "$profile") 'TFSEnvironmentPaths.ps1'
+$tfsEnvIISConfigurationFile = Join-Path (Split-Path "$profile") 'TFSEnvironmentIISConfiguration.ps1'
+$tfsEnvironmentSwitchPath = Join-Path (Split-Path "$profile") 'Use-TFSEnvironment.ps1'
+
+
+New-Variable Environments -Scope Global -Force -Value (New-Object PSObject -Property @{
+	Dev = (New-Object PSObject -Property @{
+		Name = 'Dev';
+		Color = [System.ConsoleColor]::Green;
+		BackgroundColor = $Host.UI.RawUI.BackgroundColor;
+	})
+})
+
+New-Variable TFSEnvironments -Scope Global -Force -Value (New-Object PSObject -Property @{
 	Dev =  @{
 		Name = 'Dev'; 
 		Color = 'Green';
@@ -84,8 +98,3 @@
 		};
 	}
 });
-
-$tfsEnvFile = Join-Path (Split-Path "$profile") 'TFSEnvironment.ps1'
-$tfsEnvPathsFile = Join-Path (Split-Path "$profile") 'TFSEnvironmentPaths.ps1'
-$tfsEnvIISConfigurationFile = Join-Path (Split-Path "$profile") 'TFSEnvironmentIISConfiguration.ps1'
-$tfsEnvironmentSwitchPath = Join-Path (Split-Path "$profile") 'Use-TFSEnvironment.ps1'

@@ -16,6 +16,7 @@ $TFSAssembliesPath = "C:\Program Files\Common Files\Microsoft Shared\Team Founda
 
 If (Test-Path $TFSAssembliesPath) {
 	#move to a separate TFS module
+
 	[void][System.Reflection.Assembly]::LoadFrom("$TFSAssembliesPath\Microsoft.TeamFoundation.Client.dll")
 	[void][System.Reflection.Assembly]::LoadFrom("$TFSAssembliesPath\Microsoft.TeamFoundation.Common.dll")
 	[void][System.Reflection.Assembly]::LoadFrom("$TFSAssembliesPath\Microsoft.TeamFoundation.WorkItemTracking.Client.dll")
@@ -28,4 +29,4 @@ If (Test-Path $TFSAssembliesPath) {
 	Export-ModuleMember -Function Get-TFSBranchParent
 }
 
-# Export-ModuleMember -Function *-*
+ Export-ModuleMember -Function *-*
