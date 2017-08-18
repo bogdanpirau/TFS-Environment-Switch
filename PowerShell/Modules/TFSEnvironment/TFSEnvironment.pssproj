@@ -72,6 +72,7 @@
     <Compile Include="Functions\Utils\Reload-EnviromentVariables.ps1" />
     <Compile Include="Functions\Utils\Replace-PhysicalPathWithDevBranchPath.ps1" />
     <Compile Include="Functions\Utils\Set-TFSMachineEnvVariable.ps1" />
+    <Compile Include="Functions\Utils\Update-PSCustomObject.ps1" />
     <Compile Include="TFSEnvironment.psd1" />
     <Compile Include="TFSEnvironment.psm1" />
     <Compile Include="TFSEnvironment.tests.ps1" />
