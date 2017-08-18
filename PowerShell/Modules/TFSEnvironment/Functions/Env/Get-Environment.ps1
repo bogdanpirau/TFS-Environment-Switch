@@ -3,6 +3,7 @@
 #
 Function Get-Environment {
 param(
+	[Parameter(ValueFromPipeline = $True, ValueFromPipelineByPropertyName = $True)]
 	[string]$Name,
 	[Switch]$ListOnly
 )
@@ -22,6 +23,6 @@ param(
 		$result | % { Write-Host $_.Name -ForegroundColor ([System.ConsoleColor]$_.Color) -BackgroundColor ([System.ConsoleColor]$_.BackgroundColor) }
 	}
 	Else {
-		Return $result
+		Return $result | Select Name, Color, BackgroundColor
 	}
 }

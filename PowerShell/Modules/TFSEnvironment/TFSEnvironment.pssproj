@@ -38,8 +38,12 @@
   <ItemGroup>
     <Compile Include="Functions\Disable-TFSEnvironment.ps1" />
     <Compile Include="Functions\Enable-TFSEnvironment.ps1" />
+    <Compile Include="Functions\Env\Export-Environment.ps1" />
     <Compile Include="Functions\Env\Get-Environment.ps1" />
+    <Compile Include="Functions\Env\Import-Environment.ps1" />
     <Compile Include="Functions\Env\New-Environment.ps1" />
+    <Compile Include="Functions\Env\Remove-Environment.ps1" />
+    <Compile Include="Functions\Env\Validate-Environment.ps1" />
     <Compile Include="Functions\Get-TFSEnvironment.ps1" />
     <Compile Include="Functions\Initialize-TFSEnvironment.ps1" />
     <Compile Include="Functions\Set-TFSEnvironment.ps1" />

@@ -1,19 +1,21 @@
 #
 # New_Environment.ps1
 #
-Function New-Environment{
+Function New-Environment {
 Param(
-	[Parameter(Mandatory = $True)]
+	[Parameter(Mandatory = $True, ValueFromPipeline = $True, ValueFromPipelineByPropertyName = $True)]
 	[String]$Name,
-	[Parameter(Mandatory = $True)]
+	[Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True)]
 	[System.ConsoleColor]$Color,
-	[System.ConsoleColor]$BackgroundColor = $Host.UI.RawUI.BackgroundColor
+	[Parameter(ValueFromPipelineByPropertyName = $True)]
+	[System.ConsoleColor]$BackgroundColor = $Host.UI.RawUI.BackgroundColor,
+	[Switch]$Force
 )
-	Validate-Environment @PSBoundParameters -IsNewEnvironment
+	Validate-Environment @PSBoundParameters
 
-	$Global:Environments | Add-Member -Type NoteProperty -Name $Name -Value (New-Object PSObject -Property @{
+	$Global:Environments | Add-Member -Force -Type NoteProperty -Name $Name -Value (New-Object PSObject -Property ([ordered]@{
 		Name = $Name;
 		Color = $Color;
 		BackgroundColor = $BackgroundColor;
-	})
+	}))
 }

@@ -3,12 +3,13 @@
 #
 Function Validate-Environment {
 Param(
-	[Parameter(Mandatory = $True)]
+	[Parameter(Mandatory = $True, ValueFromPipeline = $True, ValueFromPipelineByPropertyName = $True)]
 	[String]$Name,
-	[Parameter(Mandatory = $True)]
+	[Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True)]
 	[System.ConsoleColor]$Color,
+	[Parameter(ValueFromPipelineByPropertyName = $True)]
 	[System.ConsoleColor]$BackgroundColor = $Host.UI.RawUI.BackgroundColor,
-	[Switch]$IsNewEnvironment
+	[Switch]$Force
 )
 	If (![String]::IsNullOrWhiteSpace($Name)) {
 		$Name = $Name.Trim();
@@ -20,12 +21,8 @@ Param(
 
 	# TODO Add regex validators
 
-	If ($IsNewEnvironment.IsPresent -and $Global:Environments.$Name -ne $Null) {
-		Throw [System.ArgumentException] "Envitonment $Name is already defined", 'Name'
-	}
-
-	If (!$IsNewEnvironment.IsPresent -and $Global:Environments.$Name -eq $Null) {
-		Throw [System.ArgumentException] "Envitonment $Name is not defined", 'Name'
+	If (!$Force.IsPresent -and $Global:Environments.$Name -ne $Null) {
+		Throw [System.ArgumentException] "Envitonment [$Name] is already defined. Use -Force to override it or provide a different name.", 'Name'
 	}
 
 	If ($BackgroundColor -eq $Color){
@@ -36,13 +33,9 @@ Param(
 		Throw [System.ArgumentException] "Color has the same value as the Console Background color [$Color]. Either select a different color or specify a background color", 'BackgroundColor'
 	}
 
-	$similarEnvironments = (Get-Environment | ?{ $_.Color -eq $Color -and $_.BackgroundColor -eq $BackgroundColor })
-
-	If (!$IsNewEnvironment.IsPresent) {
-		$similarEnvironments = $similarEnvironments | ? { $_.Name -ne $Name }
-	}
+	$similarEnvironments = Get-Environment | ? { $_.Color -eq $Color -and $_.BackgroundColor -eq $BackgroundColor -and $_.Name -ne $Name } | Select -ExpandProperty Name
 
 	If ($similarEnvironments -ne $Null) {
-		Throw [System.ArgumentException] "There are other environments [$($similarEnvironments.Name)] that have the same colors. Select other color combinations", 'Color'
+		Throw [System.ArgumentException] "There are other environments [$similarEnvironments] that have the same colors. Select other color combinations", 'Color'
 	}
 }

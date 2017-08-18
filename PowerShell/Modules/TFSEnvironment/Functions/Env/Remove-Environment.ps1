@@ -3,7 +3,7 @@
 #
 Function Remove-Environment {
 Param(
-	[Parameter(Mandatory = $True)]
+	[Parameter(Mandatory = $True, ValueFromPipeline = $True, ValueFromPipelineByPropertyName = $True)]
 	[string]$Name
 )
 	If ($Global:Environments.$Name -eq $Null){
