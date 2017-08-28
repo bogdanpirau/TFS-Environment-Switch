@@ -28,6 +28,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Functions\" />
+    <Folder Include="Functions\Project\" />
     <Folder Include="Functions\Files\" />
     <Folder Include="Functions\IIS\" />
     <Folder Include="Functions\Env\" />
@@ -38,6 +39,12 @@
   <ItemGroup>
     <Compile Include="Functions\Disable-TFSEnvironment.ps1" />
     <Compile Include="Functions\Enable-TFSEnvironment.ps1" />
+    <Compile Include="Functions\Project\Export-Project.ps1" />
+    <Compile Include="Functions\Project\Get-Project.ps1" />
+    <Compile Include="Functions\Project\Import-Project.ps1" />
+    <Compile Include="Functions\Project\New-Project.ps1" />
+    <Compile Include="Functions\Project\Remove-Project.ps1" />
+    <Compile Include="Functions\Project\Validate-Project.ps1" />
     <Compile Include="Functions\Env\Export-Environment.ps1" />
     <Compile Include="Functions\Env\Get-Environment.ps1" />
     <Compile Include="Functions\Env\Import-Environment.ps1" />
